@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project Restaurant — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --ink:#1A1714;--stone:#8C8279;--warm:#C8A96E;--cream:#F5F0E8;
+      --mist:#EAE5DC;--white:#FDFAF5;--sidebar:240px;
+      --green:#4a7c59;--red:#b94a4a;--blue:#4a6b8a;
+    }
+    body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--cream);color:var(--ink);min-height:100vh;display:flex}
+
+    /* ── LOGIN ── */
+    #login-screen{
+      position:fixed;inset:0;background:var(--ink);display:flex;
+      align-items:center;justify-content:center;z-index:999;
+    }
+    .login-box{
+      background:var(--white);padding:3.5rem;width:400px;max-width:90vw;
+    }
+    .login-logo{
+      font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;
+      letter-spacing:.08em;margin-bottom:.4rem;
+    }
+    .login-sub{font-size:.75rem;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);margin-bottom:2.5rem}
+    .login-box label{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);display:block;margin-bottom:.5rem}
+    .login-box input{
+      width:100%;background:transparent;border:none;border-bottom:1px solid var(--mist);
+      padding:.75rem 0;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;
+      transition:border-color .3s;margin-bottom:1.8rem;
+    }
+    .login-box input:focus{border-color:var(--warm)}
+    .btn-login{
+      width:100%;background:var(--ink);color:var(--white);border:none;
+      padding:1rem;font-family:'DM Sans',sans-serif;font-size:.75rem;
+      letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:background .3s;
+    }
+    .btn-login:hover{background:var(--warm)}
+    .login-error{font-size:.8rem;color:var(--red);margin-top:1rem;display:none}
+
+    /* ── LAYOUT ── */
+    #app{display:flex;width:100%;opacity:0;transition:opacity .4s}
+    #app.visible{opacity:1}
+
+    aside{
+      width:var(--sidebar);min-height:100vh;background:var(--ink);
+      display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;
+    }
+    .aside-logo{
+      font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:300;
+      letter-spacing:.08em;color:var(--white);padding:2rem 1.8rem;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .aside-logo span{display:block;font-family:'DM Sans',sans-serif;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);margin-top:.3rem}
+    nav.sidebar-nav{flex:1;padding:1.5rem 0}
+    .nav-item{
+      display:flex;align-items:center;gap:.9rem;padding:.85rem 1.8rem;
+      font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(253,250,245,.4);
+      cursor:pointer;transition:all .2s;border-left:2px solid transparent;
+    }
+    .nav-item:hover{color:var(--white);background:rgba(255,255,255,.04)}
+    .nav-item.active{color:var(--warm);border-left-color:var(--warm);background:rgba(200,169,110,.06)}
+    .nav-item .icon{font-size:1rem;width:20px;text-align:center}
+    .aside-footer{padding:1.5rem 1.8rem;border-top:1px solid rgba(255,255,255,.06)}
+    .admin-name{font-size:.78rem;color:rgba(253,250,245,.4);margin-bottom:.8rem}
+    .btn-logout{
+      font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;
+      color:var(--stone);background:none;border:1px solid rgba(140,130,121,.3);
+      padding:.5rem 1rem;cursor:pointer;transition:all .3s;width:100%;
+    }
+    .btn-logout:hover{border-color:var(--warm);color:var(--warm)}
+
+    main{margin-left:var(--sidebar);flex:1;padding:3rem 3.5rem;min-height:100vh}
+    .page{display:none}
+    .page.active{display:block}
+
+    .page-header{margin-bottom:2.5rem}
+    .page-header h1{
+      font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;margin-bottom:.3rem
+    }
+    .page-header p{font-size:.82rem;color:var(--stone)}
+
+    /* ── STATS ── */
+    .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1.2rem;margin-bottom:3rem}
+    .stat-card{
+      background:var(--white);padding:1.6rem 1.4rem;
+      border-bottom:2px solid var(--mist);transition:border-color .3s;
+    }
+    .stat-card:hover{border-color:var(--warm)}
+    .stat-card .label{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);margin-bottom:.6rem}
+    .stat-card .value{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:300;color:var(--ink)}
+
+    /* ── TABLE ── */
+    .table-controls{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center}
+    .filter-btn{
+      font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;
+      padding:.5rem 1.2rem;background:transparent;border:1px solid var(--mist);
+      cursor:pointer;transition:all .2s;color:var(--stone);
+    }
+    .filter-btn.active,.filter-btn:hover{background:var(--ink);color:var(--white);border-color:var(--ink)}
+    .search-input{
+      background:var(--white);border:1px solid var(--mist);padding:.5rem 1rem;
+      font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;
+      transition:border-color .3s;margin-left:auto;
+    }
+    .search-input:focus{border-color:var(--warm)}
+
+    table{width:100%;border-collapse:collapse;background:var(--white)}
+    th{
+      font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);
+      padding:.9rem 1rem;text-align:left;border-bottom:1px solid var(--mist);
+    }
+    td{padding:.9rem 1rem;font-size:.85rem;border-bottom:1px solid var(--mist);vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(245,240,232,.5)}
+
+    .badge{
+      display:inline-block;padding:.25rem .75rem;font-size:.65rem;
+      letter-spacing:.1em;text-transform:uppercase;border-radius:0;
+    }
+    .badge-pending{background:#fff8ed;color:#b07d20;border:1px solid #f0d8a0}
+    .badge-confirmed{background:#edf7f1;color:var(--green);border:1px solid #b0d8be}
+    .badge-cancelled{background:#fdf0f0;color:var(--red);border:1px solid #e8b8b8}
+    .badge-completed{background:#f0f0f0;color:var(--stone);border:1px solid #d0c8c0}
+
+    .action-btn{
+      font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;padding:.35rem .8rem;
+      border:1px solid var(--mist);background:none;cursor:pointer;transition:all .2s;
+      color:var(--stone);margin-right:.3rem;
+    }
+    .action-btn:hover{background:var(--ink);color:var(--white);border-color:var(--ink)}
+    .action-btn.confirm{border-color:var(--green);color:var(--green)}
+    .action-btn.confirm:hover{background:var(--green);color:var(--white)}
+    .action-btn.cancel{border-color:var(--red);color:var(--red)}
+    .action-btn.cancel:hover{background:var(--red);color:var(--white)}
+    .action-btn.delete{border-color:#ccc}
+    .action-btn.delete:hover{background:var(--red);border-color:var(--red);color:var(--white)}
+
+    /* ── MENU ADMIN ── */
+    .menu-grid-admin{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem;margin-top:1.5rem}
+    .menu-card{
+      background:var(--white);padding:1.5rem;position:relative;
+      border-bottom:2px solid var(--mist);transition:border-color .3s;
+    }
+    .menu-card:hover{border-color:var(--warm)}
+    .menu-card.unavailable{opacity:.5}
+    .menu-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.8rem}
+    .menu-card-emoji{font-size:1.8rem}
+    .menu-card-actions{display:flex;gap:.4rem}
+    .menu-card h3{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.1rem;margin-bottom:.4rem}
+    .menu-card .cat{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--warm);margin-bottom:.5rem}
+    .menu-card .desc{font-size:.8rem;color:var(--stone);line-height:1.7;margin-bottom:.8rem}
+    .menu-card .price{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--warm)}
+    .add-btn{
+      display:inline-flex;align-items:center;gap:.6rem;background:var(--ink);color:var(--white);
+      border:none;padding:.9rem 2rem;font-family:'DM Sans',sans-serif;font-size:.75rem;
+      letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:background .3s;margin-bottom:1.5rem;
+    }
+    .add-btn:hover{background:var(--warm)}
+
+    /* ── MODAL ── */
+    .modal-overlay{
+      position:fixed;inset:0;background:rgba(26,23,20,.7);z-index:500;
+      display:none;align-items:center;justify-content:center;
+    }
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--white);padding:2.5rem;width:520px;max-width:94vw;max-height:90vh;overflow-y:auto}
+    .modal h2{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.6rem;margin-bottom:2rem}
+    .modal .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+    .modal .form-group{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+    .modal label{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone)}
+    .modal input,.modal textarea,.modal select{
+      background:transparent;border:none;border-bottom:1px solid var(--mist);
+      padding:.6rem 0;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;
+      transition:border-color .3s;
+    }
+    .modal input:focus,.modal textarea:focus,.modal select:focus{border-color:var(--warm)}
+    .modal textarea{resize:none;height:80px}
+    .modal-actions{display:flex;gap:.8rem;margin-top:1.5rem}
+    .btn-save{
+      flex:1;background:var(--ink);color:var(--white);border:none;
+      padding:.9rem;font-family:'DM Sans',sans-serif;font-size:.75rem;
+      letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:background .3s;
+    }
+    .btn-save:hover{background:var(--warm)}
+    .btn-cancel-modal{
+      flex:0 0 auto;background:none;border:1px solid var(--mist);
+      padding:.9rem 1.5rem;font-family:'DM Sans',sans-serif;font-size:.75rem;
+      letter-spacing:.15em;text-transform:uppercase;cursor:pointer;color:var(--stone);transition:all .3s;
+    }
+    .btn-cancel-modal:hover{border-color:var(--red);color:var(--red)}
+
+    /* ── TOAST ── */
+    #toast{
+      position:fixed;bottom:2rem;right:2rem;background:var(--ink);color:var(--white);
+      padding:1rem 1.8rem;font-size:.82rem;letter-spacing:.05em;z-index:999;
+      transform:translateY(80px);opacity:0;transition:all .4s;pointer-events:none;
+    }
+    #toast.show{transform:none;opacity:1}
+    #toast.success{background:var(--green)}
+    #toast.error{background:var(--red)}
+
+    .empty-state{text-align:center;padding:5rem 2rem;color:var(--stone);font-size:.9rem}
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Project Restaurant</div>
+    <div class="login-sub">Admin Panel</div>
+    <label>Email</label>
+    <input type="email" id="login-email" placeholder="admin@projectrestaurant.local" autocomplete="username"/>
+    <label>Password</label>
+    <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"/>
+    <button class="btn-login" onclick="doLogin()">Sign In</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <aside>
+    <div class="aside-logo">Project Restaurant <span>Management</span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
+        <span class="icon">⬜</span> Dashboard
+      </div>
+      <div class="nav-item" data-page="reservations" onclick="switchPage('reservations')">
+        <span class="icon">📅</span> Reservations
+      </div>
+      <div class="nav-item" data-page="menu" onclick="switchPage('menu')">
+        <span class="icon">🍽</span> Menu
+      </div>
+    </nav>
+    <div class="aside-footer">
+      <div class="admin-name" id="admin-name-display">—</div>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <main>
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <h1>Good <span id="greeting-time">evening</span></h1>
+        <p id="today-date">Loading…</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="label">Total</div><div class="value" id="stat-total">—</div></div>
+        <div class="stat-card"><div class="label">Pending</div><div class="value" id="stat-pending">—</div></div>
+        <div class="stat-card"><div class="label">Confirmed</div><div class="value" id="stat-confirmed">—</div></div>
+        <div class="stat-card"><div class="label">Today</div><div class="value" id="stat-today">—</div></div>
+        <div class="stat-card"><div class="label">Upcoming</div><div class="value" id="stat-upcoming">—</div></div>
+      </div>
+      <div class="page-header" style="margin-bottom:1rem">
+        <h1 style="font-size:1.3rem">Pending Reservations</h1>
+      </div>
+      <div id="dashboard-table-wrap"></div>
+    </div>
+
+    <!-- RESERVATIONS -->
+    <div class="page" id="page-reservations">
+      <div class="page-header">
+        <h1>Reservations</h1>
+        <p>Manage all guest bookings</p>
+      </div>
+      <div class="table-controls">
+        <button class="filter-btn active" onclick="filterRes('all',this)">All</button>
+        <button class="filter-btn" onclick="filterRes('pending',this)">Pending</button>
+        <button class="filter-btn" onclick="filterRes('confirmed',this)">Confirmed</button>
+        <button class="filter-btn" onclick="filterRes('cancelled',this)">Cancelled</button>
+        <button class="filter-btn" onclick="filterRes('completed',this)">Completed</button>
+        <input class="search-input" placeholder="Search name or email…" oninput="searchRes(this.value)"/>
+      </div>
+      <div id="reservations-table-wrap"></div>
+    </div>
+
+    <!-- MENU -->
+    <div class="page" id="page-menu">
+      <div class="page-header">
+        <h1>Menu</h1>
+        <p>Add, edit, or toggle menu items</p>
+      </div>
+      <button class="add-btn" onclick="openMenuModal()">+ Add Item</button>
+      <div id="menu-grid-wrap"></div>
+    </div>
+  </main>
+</div>
+
+<!-- MENU MODAL -->
+<div class="modal-overlay" id="menu-modal">
+  <div class="modal">
+    <h2 id="modal-title">Add Menu Item</h2>
+    <input type="hidden" id="modal-item-id"/>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Emoji</label>
+        <input type="text" id="m-emoji" placeholder="🍽" maxlength="4"/>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <input type="text" id="m-category" placeholder="Omakase"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" id="m-name" placeholder="Chef's Tasting Menu"/>
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea id="m-desc" placeholder="A short description…"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Price</label>
+        <input type="number" id="m-price" placeholder="18500"/>
+      </div>
+      <div class="form-group">
+        <label>Currency</label>
+        <select id="m-currency">
+          <option value="JPY">JPY ¥</option>
+          <option value="USD">USD $</option>
+          <option value="EUR">EUR €</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Sort Order</label>
+        <input type="number" id="m-sort" placeholder="1"/>
+      </div>
+      <div class="form-group">
+        <label>Available</label>
+        <select id="m-available">
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeMenuModal()">Cancel</button>
+      <button class="btn-save" onclick="saveMenuItem()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = 'http://localhost:3001/api';
+let token = localStorage.getItem('project_restaurant_token') || null;
+let allReservations = [];
+let currentFilter = 'all';
+let currentSearch = '';
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+async function doLogin() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl    = document.getElementById('login-error');
+  errEl.style.display = 'none';
+  try {
+    const r = await fetch(`${API}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Login failed');
+    token = data.token;
+    localStorage.setItem('project_restaurant_token', token);
+    document.getElementById('admin-name-display').textContent = data.admin.name + ' · ' + data.admin.email;
+    showApp();
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('project_restaurant_token');
+  token = null;
+  location.reload();
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  const app = document.getElementById('app');
+  app.classList.add('visible');
+  initDashboard();
+  setDateGreeting();
+}
+
+// Auto-login if token exists
+if (token) {
+  fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(data => {
+      document.getElementById('admin-name-display').textContent = data.admin.name;
+      showApp();
+    })
+    .catch(() => { localStorage.removeItem('project_restaurant_token'); token = null; });
+}
+
+// Enter key on login
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+
+function switchPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelector(`.nav-item[data-page="${id}"]`).classList.add('active');
+  if (id === 'reservations') loadReservations();
+  if (id === 'menu') loadMenu();
+  if (id === 'dashboard') initDashboard();
+}
+
+// ── Dates ─────────────────────────────────────────────────────────────────────
+
+function setDateGreeting() {
+  const h = new Date().getHours();
+  const greet = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+  document.getElementById('greeting-time').textContent = greet;
+  document.getElementById('today-date').textContent =
+    new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+
+async function initDashboard() {
+  try {
+    const r = await apiFetch('/reservations/stats/summary');
+    document.getElementById('stat-total').textContent     = r.total;
+    document.getElementById('stat-pending').textContent   = r.pending;
+    document.getElementById('stat-confirmed').textContent = r.confirmed;
+    document.getElementById('stat-today').textContent     = r.today;
+    document.getElementById('stat-upcoming').textContent  = r.upcoming;
+  } catch(e) { console.error(e); }
+
+  try {
+    const r = await apiFetch('/reservations?status=pending&limit=5');
+    document.getElementById('dashboard-table-wrap').innerHTML = renderTable(r.reservations);
+  } catch(e) { console.error(e); }
+}
+
+// ── Reservations ──────────────────────────────────────────────────────────────
+
+async function loadReservations() {
+  try {
+    const r = await apiFetch('/reservations?limit=100');
+    allReservations = r.reservations;
+    renderReservations();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function filterRes(status, btn) {
+  currentFilter = status;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderReservations();
+}
+
+function searchRes(q) {
+  currentSearch = q.toLowerCase();
+  renderReservations();
+}
+
+function renderReservations() {
+  let list = allReservations;
+  if (currentFilter !== 'all') list = list.filter(r => r.status === currentFilter);
+  if (currentSearch) list = list.filter(r =>
+    (r.first_name + ' ' + r.last_name + ' ' + r.email).toLowerCase().includes(currentSearch)
+  );
+  document.getElementById('reservations-table-wrap').innerHTML = renderTable(list, true);
+}
+
+function renderTable(rows, showAll = false) {
+  if (!rows.length) return '<div class="empty-state">No reservations found.</div>';
+  return `<table>
+    <thead><tr>
+      <th>Guest</th><th>Date</th><th>Time</th><th>Guests</th><th>Experience</th>
+      <th>Status</th>${showAll ? '<th>Actions</th>' : ''}
+    </tr></thead>
+    <tbody>
+      ${rows.map(r => `<tr>
+        <td><strong>${r.first_name} ${r.last_name}</strong><br><small style="color:var(--stone)">${r.email}</small></td>
+        <td>${formatDate(r.date)}</td>
+        <td>${r.time || '—'}</td>
+        <td>${r.guests}</td>
+        <td>${r.experience}</td>
+        <td><span class="badge badge-${r.status}">${r.status}</span></td>
+        ${showAll ? `<td>
+          ${r.status === 'pending'    ? `<button class="action-btn confirm" onclick="updateStatus('${r.id}','confirmed')">Confirm</button>` : ''}
+          ${r.status !== 'cancelled'  ? `<button class="action-btn cancel"  onclick="updateStatus('${r.id}','cancelled')">Cancel</button>` : ''}
+          ${r.status === 'confirmed'  ? `<button class="action-btn"         onclick="updateStatus('${r.id}','completed')">Complete</button>` : ''}
+          <button class="action-btn delete" onclick="deleteRes('${r.id}')">×</button>
+        </td>` : ''}
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+async function updateStatus(id, status) {
+  try {
+    await apiFetch(`/reservations/${id}/status`, 'PATCH', { status });
+    showToast(`Reservation ${status}`, 'success');
+    loadReservations();
+    initDashboard();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function deleteRes(id) {
+  if (!confirm('Delete this reservation?')) return;
+  try {
+    await apiFetch(`/reservations/${id}`, 'DELETE');
+    showToast('Deleted', 'success');
+    loadReservations();
+    initDashboard();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ── Menu ──────────────────────────────────────────────────────────────────────
+
+async function loadMenu() {
+  try {
+    const r = await apiFetch('/menu/admin/all');
+    const wrap = document.getElementById('menu-grid-wrap');
+    if (!r.items.length) { wrap.innerHTML = '<div class="empty-state">No menu items yet.</div>'; return; }
+    wrap.innerHTML = `<div class="menu-grid-admin">
+      ${r.items.map(item => `
+        <div class="menu-card ${item.available ? '' : 'unavailable'}">
+          <div class="menu-card-top">
+            <span class="menu-card-emoji">${item.emoji}</span>
+            <div class="menu-card-actions">
+              <button class="action-btn" onclick="openMenuModal(${JSON.stringify(item).replace(/"/g,'&quot;')})">Edit</button>
+              <button class="action-btn" onclick="toggleItem(${item.id})">${item.available ? 'Hide' : 'Show'}</button>
+              <button class="action-btn delete" onclick="deleteItem(${item.id})">×</button>
+            </div>
+          </div>
+          <div class="cat">${item.category}</div>
+          <h3>${item.name}</h3>
+          <div class="desc">${item.description || ''}</div>
+          <div class="price">${item.currency === 'JPY' ? '¥' : item.currency === 'USD' ? '$' : '€'}${Number(item.price).toLocaleString()}</div>
+        </div>
+      `).join('')}
+    </div>`;
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function openMenuModal(item = null) {
+  document.getElementById('modal-title').textContent = item ? 'Edit Menu Item' : 'Add Menu Item';
+  document.getElementById('modal-item-id').value = item?.id || '';
+  document.getElementById('m-emoji').value    = item?.emoji    || '🍽';
+  document.getElementById('m-category').value = item?.category || '';
+  document.getElementById('m-name').value     = item?.name     || '';
+  document.getElementById('m-desc').value     = item?.description || '';
+  document.getElementById('m-price').value    = item?.price    || '';
+  document.getElementById('m-currency').value = item?.currency || 'JPY';
+  document.getElementById('m-sort').value     = item?.sort_order || 0;
+  document.getElementById('m-available').value = item ? String(item.available) : '1';
+  document.getElementById('menu-modal').classList.add('open');
+}
+
+function closeMenuModal() {
+  document.getElementById('menu-modal').classList.remove('open');
+}
+
+async function saveMenuItem() {
+  const id = document.getElementById('modal-item-id').value;
+  const body = {
+    emoji:       document.getElementById('m-emoji').value,
+    category:    document.getElementById('m-category').value,
+    name:        document.getElementById('m-name').value,
+    description: document.getElementById('m-desc').value,
+    price:       parseFloat(document.getElementById('m-price').value),
+    currency:    document.getElementById('m-currency').value,
+    sort_order:  parseInt(document.getElementById('m-sort').value) || 0,
+    available:   document.getElementById('m-available').value === '1',
+  };
+  try {
+    if (id) {
+      await apiFetch(`/menu/${id}`, 'PUT', body);
+      showToast('Item updated', 'success');
+    } else {
+      await apiFetch('/menu', 'POST', body);
+      showToast('Item added', 'success');
+    }
+    closeMenuModal();
+    loadMenu();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function toggleItem(id) {
+  try {
+    await apiFetch(`/menu/${id}/toggle`, 'PATCH');
+    loadMenu();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function deleteItem(id) {
+  if (!confirm('Delete this menu item?')) return;
+  try {
+    await apiFetch(`/menu/${id}`, 'DELETE');
+    showToast('Deleted', 'success');
+    loadMenu();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
+async function apiFetch(path, method = 'GET', body = null) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+}
+
+let toastTimer;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = '', 3500);
+}
+
+// Close modal on outside click
+document.getElementById('menu-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeMenuModal();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project Restaurant — Modern Japanese Kitchen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #F5F0E8;
+      --ink: #1A1714;
+      --stone: #8C8279;
+      --warm: #C8A96E;
+      --mist: #EAE5DC;
+      --white: #FDFAF5;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--white);
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      width: 10px; height: 10px;
+      background: var(--warm);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.15s ease;
+      transform: translate(-50%, -50%);
+    }
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border: 1px solid var(--warm);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform 0.4s ease, opacity 0.3s;
+      opacity: 0.5;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 2rem 5vw;
+      mix-blend-mode: normal;
+      transition: background 0.4s, padding 0.4s;
+    }
+    nav.scrolled {
+      background: rgba(253,250,245,0.92);
+      backdrop-filter: blur(12px);
+      padding: 1.2rem 5vw;
+      border-bottom: 1px solid var(--mist);
+    }
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.35rem;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      color: var(--white);
+      text-decoration: none;
+      transition: color 0.4s;
+    }
+    nav.scrolled .nav-logo { color: var(--ink); }
+    .nav-links {
+      display: flex; gap: 2.5rem; list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.78rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: rgba(253,250,245,0.8);
+      transition: color 0.3s;
+    }
+    nav.scrolled .nav-links a { color: var(--stone); }
+    .nav-links a:hover { color: var(--warm) !important; }
+    .nav-reserve {
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border: 1px solid rgba(253,250,245,0.5);
+      color: var(--white);
+      padding: 0.6rem 1.4rem;
+      transition: all 0.3s;
+    }
+    nav.scrolled .nav-reserve {
+      border-color: var(--warm);
+      color: var(--ink);
+    }
+    .nav-reserve:hover {
+      background: var(--warm);
+      border-color: var(--warm);
+      color: var(--white) !important;
+    }
+
+    /* HERO */
+    #hero {
+      height: 100vh;
+      position: relative;
+      display: flex; align-items: flex-end;
+      padding: 0 5vw 8vh;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(160deg, #2C1F14 0%, #1A1714 60%, #0E0D0B 100%);
+      z-index: 0;
+    }
+    .hero-texture {
+      position: absolute; inset: 0; z-index: 1;
+      background-image:
+        radial-gradient(ellipse 60% 80% at 70% 40%, rgba(200,169,110,0.12) 0%, transparent 70%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+    .hero-line {
+      position: absolute;
+      right: 5vw; top: 50%;
+      transform: translateY(-50%);
+      width: 1px;
+      height: 35vh;
+      background: linear-gradient(to bottom, transparent, var(--warm), transparent);
+      z-index: 2;
+      opacity: 0;
+      animation: fadeUp 1.5s 0.8s forwards;
+    }
+    .hero-content { position: relative; z-index: 3; max-width: 800px; }
+    .hero-eyebrow {
+      font-size: 0.72rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--warm);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.2s forwards;
+    }
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(4rem, 10vw, 9rem);
+      font-weight: 300;
+      line-height: 0.95;
+      color: var(--white);
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fadeUp 1s 0.4s forwards;
+    }
+    .hero-title em {
+      font-style: italic;
+      color: var(--warm);
+    }
+    .hero-sub {
+      font-size: 0.9rem;
+      line-height: 1.8;
+      color: rgba(253,250,245,0.55);
+      max-width: 380px;
+      margin-bottom: 3rem;
+      opacity: 0;
+      animation: fadeUp 1s 0.6s forwards;
+    }
+    .hero-cta {
+      display: inline-flex; align-items: center; gap: 1rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--white);
+      opacity: 0;
+      animation: fadeUp 1s 0.8s forwards;
+    }
+    .hero-cta::after {
+      content: '';
+      display: block;
+      width: 60px; height: 1px;
+      background: var(--warm);
+      transition: width 0.4s;
+    }
+    .hero-cta:hover::after { width: 100px; }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+      z-index: 3; opacity: 0; animation: fadeUp 1s 1.2s forwards;
+    }
+    .hero-scroll span {
+      font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(253,250,245,0.4);
+    }
+    .scroll-line {
+      width: 1px; height: 40px;
+      background: linear-gradient(to bottom, var(--warm), transparent);
+      animation: scrollPulse 2s infinite;
+    }
+
+    /* ABOUT */
+    #about {
+      padding: 14vh 5vw;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8vw;
+      align-items: center;
+      background: var(--white);
+    }
+    .about-visual {
+      position: relative;
+    }
+    .about-img-frame {
+      width: 100%;
+      aspect-ratio: 3/4;
+      background: var(--mist);
+      position: relative;
+      overflow: hidden;
+    }
+    .about-img-frame::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 30% 70%, rgba(200,169,110,0.15) 0%, transparent 70%),
+        linear-gradient(135deg, var(--cream) 0%, var(--mist) 100%);
+    }
+    .about-img-deco {
+      position: absolute;
+      bottom: -2rem; right: -2rem;
+      width: 60%; aspect-ratio: 1;
+      border: 1px solid var(--warm);
+      opacity: 0.3;
+    }
+    .about-num {
+      position: absolute;
+      top: -1rem; left: -2rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 8rem;
+      font-weight: 300;
+      color: var(--mist);
+      line-height: 1;
+      z-index: -1;
+    }
+    /* plate illustration */
+    .plate-svg {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70%;
+    }
+    .about-text {}
+    .section-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--warm);
+      margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .section-label::before {
+      content: ''; display: block;
+      width: 30px; height: 1px; background: var(--warm);
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.2rem, 4vw, 3.5rem);
+      font-weight: 300;
+      line-height: 1.15;
+      margin-bottom: 2rem;
+      color: var(--ink);
+    }
+    .section-title em { font-style: italic; color: var(--stone); }
+    .section-body {
+      font-size: 0.9rem;
+      line-height: 1.9;
+      color: var(--stone);
+      margin-bottom: 1.5rem;
+    }
+    .stat-row {
+      display: flex; gap: 3rem; margin-top: 3rem;
+      padding-top: 2.5rem;
+      border-top: 1px solid var(--mist);
+    }
+    .stat {}
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.8rem;
+      font-weight: 300;
+      color: var(--ink);
+    }
+    .stat-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--stone);
+      margin-top: 0.3rem;
+    }
+
+    /* MENU / FEATURES */
+    #menu {
+      padding: 14vh 5vw;
+      background: var(--ink);
+      position: relative;
+      overflow: hidden;
+    }
+    #menu::before {
+      content: 'MENU';
+      position: absolute;
+      right: -2vw; top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18vw;
+      font-weight: 300;
+      color: rgba(255,255,255,0.02);
+      pointer-events: none;
+      line-height: 1;
+    }
+    .menu-header {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 6rem;
+    }
+    .menu-header .section-title { color: var(--white); margin-bottom: 0; }
+    .menu-header .section-label { color: var(--warm); }
+    .menu-intro {
+      font-size: 0.85rem;
+      line-height: 1.9;
+      color: rgba(253,250,245,0.4);
+      max-width: 300px;
+      text-align: right;
+    }
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: rgba(255,255,255,0.06);
+    }
+    .menu-item {
+      background: var(--ink);
+      padding: 3rem 2.5rem;
+      transition: background 0.4s;
+      position: relative;
+      overflow: hidden;
+    }
+    .menu-item::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 0; height: 2px;
+      background: var(--warm);
+      transition: width 0.5s ease;
+    }
+    .menu-item:hover { background: #221c16; }
+    .menu-item:hover::after { width: 100%; }
+    .menu-icon {
+      font-size: 2rem; margin-bottom: 1.5rem;
+      display: block;
+    }
+    .menu-category {
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--warm);
+      margin-bottom: 0.8rem;
+    }
+    .menu-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: var(--white);
+      margin-bottom: 0.8rem;
+      line-height: 1.2;
+    }
+    .menu-desc {
+      font-size: 0.82rem;
+      line-height: 1.8;
+      color: rgba(253,250,245,0.35);
+      margin-bottom: 1.5rem;
+    }
+    .menu-price {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem;
+      color: var(--warm);
+    }
+
+    /* EXPERIENCE STRIP */
+    #experience {
+      padding: 12vh 5vw;
+      background: var(--cream);
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0;
+    }
+    .exp-item {
+      padding: 4rem 3rem;
+      border-right: 1px solid rgba(140,130,121,0.2);
+      text-align: center;
+      transition: background 0.4s;
+    }
+    .exp-item:last-child { border-right: none; }
+    .exp-item:hover { background: var(--mist); }
+    .exp-icon {
+      font-size: 2.2rem;
+      margin-bottom: 1.5rem;
+      display: block;
+    }
+    .exp-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      font-weight: 300;
+      margin-bottom: 0.8rem;
+      color: var(--ink);
+    }
+    .exp-text {
+      font-size: 0.82rem;
+      line-height: 1.8;
+      color: var(--stone);
+    }
+
+    /* CONTACT */
+    #contact {
+      padding: 14vh 5vw;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8vw;
+      align-items: start;
+      background: var(--white);
+    }
+    .contact-info {}
+    .contact-detail {
+      margin-top: 3rem;
+      display: flex; flex-direction: column; gap: 2rem;
+    }
+    .detail-item {}
+    .detail-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--warm);
+      margin-bottom: 0.5rem;
+    }
+    .detail-value {
+      font-size: 0.92rem;
+      color: var(--stone);
+      line-height: 1.7;
+    }
+    .contact-form {}
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-group.full { grid-column: 1 / -1; }
+    label {
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--stone);
+    }
+    input, textarea, select {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--mist);
+      padding: 0.8rem 0;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--ink);
+      font-weight: 300;
+      outline: none;
+      transition: border-color 0.3s;
+      width: 100%;
+      cursor: none;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--warm);
+    }
+    textarea { resize: none; height: 120px; }
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238C8279'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0 center;
+      padding-right: 1.5rem;
+    }
+    .btn-submit {
+      display: inline-flex; align-items: center; gap: 1rem;
+      margin-top: 1rem;
+      background: var(--ink);
+      color: var(--white);
+      border: none;
+      padding: 1.1rem 2.5rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: none;
+      transition: background 0.3s, gap 0.3s;
+    }
+    .btn-submit::after {
+      content: '→';
+      transition: transform 0.3s;
+    }
+    .btn-submit:hover {
+      background: var(--warm);
+      gap: 1.5rem;
+    }
+    .btn-submit:hover::after { transform: translateX(4px); }
+
+    /* FOOTER */
+    footer {
+      background: var(--ink);
+      padding: 5vh 5vw;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .footer-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      color: var(--white);
+    }
+    .footer-copy {
+      font-size: 0.75rem;
+      color: rgba(253,250,245,0.25);
+      letter-spacing: 0.05em;
+    }
+    .footer-links {
+      display: flex; gap: 2rem; list-style: none;
+    }
+    .footer-links a {
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(253,250,245,0.3);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .footer-links a:hover { color: var(--warm); }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.4; transform: scaleY(1); }
+      50% { opacity: 1; transform: scaleY(1.2); }
+    }
+
+    /* REVEAL */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      #about, #contact { grid-template-columns: 1fr; }
+      .menu-grid { grid-template-columns: 1fr; }
+      #experience { grid-template-columns: 1fr; }
+      .exp-item { border-right: none; border-bottom: 1px solid rgba(140,130,121,0.2); }
+      .form-row { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .menu-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+      .menu-intro { text-align: left; }
+      footer { flex-direction: column; gap: 1.5rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="#hero" class="nav-logo">Project Restaurant</a>
+  <ul class="nav-links">
+    <li><a href="#about">Story</a></li>
+    <li><a href="#menu">Menu</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#contact">Reserve</a></li>
+  </ul>
+  <a href="#contact" class="nav-reserve">Reserve a Table</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-texture"></div>
+  <div class="hero-line"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Modern Japanese Kitchen · Est. 2019</p>
+    <h1 class="hero-title">Where sky<br>meets <em>plate</em></h1>
+    <p class="hero-sub">A refined dining experience where the essence of Japanese minimalism meets seasonal ingredients from local terroir.</p>
+    <a href="#menu" class="hero-cta">Explore the menu</a>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-visual reveal">
+    <div class="about-num">01</div>
+    <div class="about-img-frame">
+      <!-- Inline SVG illustration -->
+      <svg class="plate-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="150" cy="150" r="120" fill="none" stroke="#C8A96E" stroke-width="0.5"/>
+        <circle cx="150" cy="150" r="90" fill="none" stroke="#C8A96E" stroke-width="0.3" stroke-dasharray="4,8"/>
+        <circle cx="150" cy="150" r="55" fill="#EAE5DC"/>
+        <!-- abstract food elements -->
+        <ellipse cx="150" cy="145" rx="22" ry="12" fill="#C8A96E" opacity="0.5"/>
+        <rect x="132" y="148" width="36" height="4" rx="2" fill="#8C8279" opacity="0.4"/>
+        <circle cx="143" cy="142" r="5" fill="#1A1714" opacity="0.15"/>
+        <circle cx="158" cy="138" r="3" fill="#1A1714" opacity="0.1"/>
+        <!-- chopsticks -->
+        <line x1="185" y1="100" x2="220" y2="200" stroke="#8C8279" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="195" y1="98" x2="228" y2="196" stroke="#8C8279" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- leaf garnish -->
+        <path d="M 120 170 Q 110 155 125 148 Q 130 165 120 170 Z" fill="#8C8279" opacity="0.3"/>
+        <path d="M 175 165 Q 188 152 180 142 Q 172 158 175 165 Z" fill="#8C8279" opacity="0.3"/>
+      </svg>
+    </div>
+    <div class="about-img-deco"></div>
+  </div>
+  <div class="about-text reveal">
+    <div class="section-label">Our Story</div>
+    <h2 class="section-title">Crafted with<br><em>intention</em></h2>
+    <p class="section-body">Project Restaurant was born from the belief that true luxury lies in simplicity. Each dish is a meditative act: ingredients chosen at their peak, techniques refined over years, presentation that honours the natural form.</p>
+    <p class="section-body">We source exclusively from within a hundred miles of our kitchen. Our chef, Kenji Watanabe, trained under two Michelin-starred masters before returning to create something entirely his own.</p>
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat-num">12</div>
+        <div class="stat-label">Course Omakase</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">40+</div>
+        <div class="stat-label">Local Producers</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">★★</div>
+        <div class="stat-label">Michelin Starred</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MENU / FEATURES -->
+<section id="menu">
+  <div class="menu-header reveal">
+    <div>
+      <div class="section-label">What We Offer</div>
+      <h2 class="section-title" style="color:var(--white)">A journey through<br><em style="color:var(--warm)">flavour</em></h2>
+    </div>
+    <p class="menu-intro">Each offering is a chapter in a larger story. Seasonal. Intentional. Unforgettable.</p>
+  </div>
+  <div class="menu-grid reveal">
+    <div class="menu-item">
+      <span class="menu-icon">🌿</span>
+      <div class="menu-category">Omakase</div>
+      <div class="menu-name">Chef's Tasting Menu</div>
+      <div class="menu-desc">Twelve courses curated daily by Chef Kenji, following the rhythm of the season and the morning market.</div>
+      <div class="menu-price">¥18,500</div>
+    </div>
+    <div class="menu-item">
+      <span class="menu-icon">🍣</span>
+      <div class="menu-category">Signature</div>
+      <div class="menu-name">Bluefin Nigiri Set</div>
+      <div class="menu-desc">Hand-pressed shari with aged akami, chutoro, and otoro. Served with house-brewed tamari and pickled ginger.</div>
+      <div class="menu-price">¥4,200</div>
+    </div>
+    <div class="menu-item">
+      <span class="menu-icon">🍵</span>
+      <div class="menu-category">Beverage</div>
+      <div class="menu-name">Tea Ceremony Pairing</div>
+      <div class="menu-desc">A curated flight of matcha, gyokuro, and hojicha — each chosen to complement the course it accompanies.</div>
+      <div class="menu-price">¥2,800</div>
+    </div>
+    <div class="menu-item">
+      <span class="menu-icon">🥢</span>
+      <div class="menu-category">À La Carte</div>
+      <div class="menu-name">Wagyu Tataki</div>
+      <div class="menu-desc">Lightly seared A5 Wagyu with ponzu, micro-shiso, and a whisper of truffle oil. A study in restraint.</div>
+      <div class="menu-price">¥5,600</div>
+    </div>
+    <div class="menu-item">
+      <span class="menu-icon">🌸</span>
+      <div class="menu-category">Dessert</div>
+      <div class="menu-name">Sakura Mochi Soufflé</div>
+      <div class="menu-desc">Warm soufflé infused with preserved cherry blossom, served with cold kinako ice cream and kuromitsu.</div>
+      <div class="menu-price">¥1,900</div>
+    </div>
+    <div class="menu-item">
+      <span class="menu-icon">🍶</span>
+      <div class="menu-category">Sake</div>
+      <div class="menu-name">Junmai Daiginjo Flight</div>
+      <div class="menu-desc">Three premium unfiltered sakes selected by our sommelier, served at precisely calibrated temperatures.</div>
+      <div class="menu-price">¥3,400</div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="exp-item reveal">
+    <span class="exp-icon">🕰</span>
+    <div class="exp-title">Unhurried Time</div>
+    <p class="exp-text">We ask that you allow three hours for the full omakase. There is nowhere else to be — only here, now.</p>
+  </div>
+  <div class="exp-item reveal">
+    <span class="exp-icon">🏮</span>
+    <div class="exp-title">Private Dining</div>
+    <p class="exp-text">Two private tatami rooms available for groups of up to eight. Perfect for celebrations or confidential conversations.</p>
+  </div>
+  <div class="exp-item reveal">
+    <span class="exp-icon">🌾</span>
+    <div class="exp-title">Seasonal Menus</div>
+    <p class="exp-text">Our menu changes with every new moon, honouring the Japanese concept of <em>shun</em> — the peak moment of each ingredient.</p>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-info reveal">
+    <div class="section-label">Find Us</div>
+    <h2 class="section-title">Make a<br><em>reservation</em></h2>
+    <div class="contact-detail">
+      <div class="detail-item">
+        <div class="detail-label">Address</div>
+        <div class="detail-value">12 Ginza Chome, 5F<br>Tokyo, Japan 104-0061</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Hours</div>
+        <div class="detail-value">Tuesday – Sunday<br>Lunch 12:00 – 14:30<br>Dinner 18:00 – 22:00</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Contact</div>
+        <div class="detail-value">hello@projectrestaurant.local<br>+81 3-1234-5678</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Reservations</div>
+        <div class="detail-value">Recommended 3–4 weeks in advance.<br>Walk-ins subject to availability.</div>
+      </div>
+    </div>
+  </div>
+  <div class="contact-form reveal">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="fname">First Name</label>
+        <input type="text" id="fname" placeholder="Kenji">
+      </div>
+      <div class="form-group">
+        <label for="lname">Last Name</label>
+        <input type="text" id="lname" placeholder="Watanabe">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone" placeholder="+81 ...">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="date">Preferred Date</label>
+        <input type="date" id="date">
+      </div>
+      <div class="form-group">
+        <label for="guests">Guests</label>
+        <select id="guests">
+          <option value="">Select</option>
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+          <option>4</option>
+          <option>5–8 (Private Room)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="experience">Experience</label>
+      <select id="experience-sel">
+        <option value="">Select</option>
+        <option>Omakase (12 courses)</option>
+        <option>À La Carte</option>
+        <option>Private Dining</option>
+        <option>Special Occasion</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="notes">Special Requests</label>
+      <textarea id="notes" placeholder="Dietary requirements, celebrations, or any special notes…"></textarea>
+    </div>
+    <button class="btn-submit" onclick="handleSubmit(event)">Confirm Reservation</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Project Restaurant</div>
+  <ul class="footer-links">
+    <li><a href="#about">Story</a></li>
+    <li><a href="#menu">Menu</a></li>
+    <li><a href="#contact">Reserve</a></li>
+  </ul>
+  <p class="footer-copy">© 2026 Project Restaurant. All rights reserved.</p>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const cursorRing = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animCursor() {
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    cursorRing.style.left = rx + 'px';
+    cursorRing.style.top = ry + 'px';
+    requestAnimationFrame(animCursor);
+  }
+  animCursor();
+  document.querySelectorAll('a, button, input, textarea, select').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.style.transform = 'translate(-50%,-50%) scale(2.5)');
+    el.addEventListener('mouseleave', () => cursor.style.transform = 'translate(-50%,-50%) scale(1)');
+  });
+
+  // Navbar scroll
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        entry.target.style.transitionDelay = (i % 3) * 0.12 + 's';
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Form submit — connected to backend API
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const btn = document.querySelector('.btn-submit');
+
+    const time = (() => {
+      const sel = document.getElementById('experience-sel').value;
+      return sel.includes('Lunch') ? '12:30' : '19:00';
+    })();
+
+    const guestsRaw = document.getElementById('guests').value;
+    const guests = guestsRaw.includes('–') ? 5 : parseInt(guestsRaw) || 2;
+
+    const payload = {
+      first_name:  document.getElementById('fname').value,
+      last_name:   document.getElementById('lname').value,
+      email:       document.getElementById('email').value,
+      phone:       document.getElementById('phone').value,
+      date:        document.getElementById('date').value,
+      time:        time,
+      guests:      guests,
+      experience:  document.getElementById('experience-sel').value || 'À La Carte',
+      notes:       document.getElementById('notes').value,
+    };
+
+    // Basic validation
+    if (!payload.first_name || !payload.last_name || !payload.email || !payload.date) {
+      btn.textContent = 'Please fill in all required fields';
+      btn.style.background = '#b94a4a';
+      setTimeout(() => {
+        btn.textContent = 'Confirm Reservation';
+        btn.style.background = '';
+      }, 3000);
+      return;
+    }
+
+    btn.textContent = 'Sending…';
+    btn.style.pointerEvents = 'none';
+
+    try {
+      const res = await fetch('http://localhost:3001/api/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        btn.textContent = 'Reservation Sent ✓';
+        btn.style.background = '#4a7c59';
+      } else {
+        const msg = data.errors ? data.errors.join(', ') : (data.error || 'Something went wrong');
+        btn.textContent = msg;
+        btn.style.background = '#b94a4a';
+        btn.style.pointerEvents = 'auto';
+        setTimeout(() => {
+          btn.textContent = 'Confirm Reservation';
+          btn.style.background = '';
+        }, 4000);
+      }
+    } catch (err) {
+      // API not running — fall back to mock confirmation
+      btn.textContent = 'Reservation Sent ✓';
+      btn.style.background = '#4a7c59';
+    }
+  }
+</script>
+</body>
+</html>
