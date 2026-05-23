@@ -62,6 +62,12 @@ Open the website:
 http://localhost:3000
 ```
 
+Live demo:
+
+```text
+https://project-restaurant-tn.netlify.app/
+```
+
 Open the admin dashboard:
 
 ```text
