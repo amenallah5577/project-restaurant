@@ -59,13 +59,13 @@ npm start
 Open the website:
 
 ```text
-http://localhost:3001
+http://localhost:3000
 ```
 
 Open the admin dashboard:
 
 ```text
-http://localhost:3001/index.html
+http://localhost:3000/index.html
 ```
 
 Default demo admin credentials from `.env.example`:

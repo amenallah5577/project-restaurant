@@ -880,6 +880,13 @@
   reveals.forEach(el => observer.observe(el));
 
   // Form submit — connected to backend API
+  const API_BASE = (() => {
+    if (window.location.protocol === 'file:' || window.location.port === '5500') {
+      return 'http://localhost:3000/api';
+    }
+    return `${window.location.origin}/api`;
+  })();
+
   async function handleSubmit(e) {
     e.preventDefault();
     const btn = document.querySelector('.btn-submit');
@@ -919,7 +926,7 @@
     btn.style.pointerEvents = 'none';
 
     try {
-      const res = await fetch('http://localhost:3001/api/reservations', {
+      const res = await fetch(`${API_BASE}/reservations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

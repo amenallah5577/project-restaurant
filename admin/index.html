@@ -353,7 +353,12 @@
 <div id="toast"></div>
 
 <script>
-const API = 'http://localhost:3001/api';
+const API = (() => {
+  if (window.location.protocol === 'file:' || window.location.port === '5500') {
+    return 'http://localhost:3000/api';
+  }
+  return `${window.location.origin}/api`;
+})();
 let token = localStorage.getItem('project_restaurant_token') || null;
 let allReservations = [];
 let currentFilter = 'all';

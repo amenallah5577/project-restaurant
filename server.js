@@ -8,7 +8,23 @@ const rateLimit = require('express-rate-limit');
 
 const app = express();
 
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      baseUri: ["'self'"],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      formAction: ["'self'"],
+      imgSrc: ["'self'", 'data:'],
+      objectSrc: ["'none'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrcAttr: ["'unsafe-inline'"],
+      styleSrc: ["'self'", 'https://fonts.googleapis.com', "'unsafe-inline'"],
+      connectSrc: ["'self'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+}));
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
   .split(',').map(s => s.trim());
@@ -65,7 +81,7 @@ app.use((err, _req, res, _next) => {
 
 // ─── Boot: init DB first, then start server ───────────────────────────────────
 const { init } = require('./db');
-const PORT = parseInt(process.env.PORT) || 3001;
+const PORT = parseInt(process.env.PORT) || 3000;
 
 init().then(() => {
   app.listen(PORT, () => {
