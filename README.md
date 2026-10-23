@@ -35,7 +35,7 @@ A polished full-stack restaurant reservation demo with a public dining website, 
 Install dependencies:
 
 ```bash
-npm install
+npm ci
 ```
 
 Create your local environment file:
@@ -62,11 +62,7 @@ Open the website:
 http://localhost:3000
 ```
 
-Live demo:
-
-```text
-https://project-restaurant-tn.netlify.app/
-```
+The previous static hosting preview does not provide the reservation API. Use the local instructions above for the complete application.
 
 Open the admin dashboard:
 
@@ -113,6 +109,8 @@ server.js              Express app entrypoint
 ```
 
 ## Notes
+
+See [reproducible setup, tests and the persistence trade-off](docs/engineering.md). Run `npm test` for isolated HTTP integration tests and `npm run check` for syntax checks; GitHub Actions runs both on pushes and pull requests.
 
 - `.env` and local database files are intentionally ignored by Git.
 - `.env.example` documents the required configuration.

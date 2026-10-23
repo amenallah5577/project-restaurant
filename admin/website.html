@@ -947,9 +947,9 @@
         }, 4000);
       }
     } catch (err) {
-      // API not running — fall back to mock confirmation
-      btn.textContent = 'Reservation Sent ✓';
-      btn.style.background = '#4a7c59';
+      btn.textContent = 'Reservation not sent. Please try again later.';
+      btn.style.background = '#b94a4a';
+      btn.style.pointerEvents = 'auto';
     }
   }
 </script>

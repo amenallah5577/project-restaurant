@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "test": "node --test",
+    "check": "node --check server.js && node --check routes/reservations.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

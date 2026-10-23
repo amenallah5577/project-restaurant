@@ -68,7 +68,7 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', service: 'Project Restaurant API', timestamp: new Date().toISOString() });
 });
 
-app.use(express.static(path.join(__dirname, 'admin')));
+app.use(express.static(path.join(__dirname, 'admin'), { index: false }));
 app.get('/', (_req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'website.html'));
 });
@@ -83,7 +83,7 @@ app.use((err, _req, res, _next) => {
 const { init } = require('./db');
 const PORT = parseInt(process.env.PORT) || 3000;
 
-init().then(() => {
+if (require.main === module) init().then(() => {
   app.listen(PORT, () => {
     console.log(`\n🌸 Project Restaurant API running at http://localhost:${PORT}`);
     console.log(`   Health:  http://localhost:${PORT}/api/health`);
@@ -94,3 +94,5 @@ init().then(() => {
   console.error('Failed to start:', err);
   process.exit(1);
 });
+
+module.exports = app;

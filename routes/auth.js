@@ -7,7 +7,7 @@ const { getDb } = require('../db');
 router.post('/login', (req, res) => {
   const db = getDb();
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
+  if (typeof email !== 'string' || typeof password !== 'string' || !email.trim() || !password) return res.status(400).json({ error: 'Email and password are required' });
 
   const admin = db.prepare('SELECT * FROM admins WHERE email = ?').get(email.toLowerCase().trim());
   if (!admin) return res.status(401).json({ error: 'Invalid credentials' });
