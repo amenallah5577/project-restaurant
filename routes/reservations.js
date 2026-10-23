@@ -7,16 +7,22 @@ const email = require('../email');
 
 function validateReservation(data) {
   const errors = [];
-  if (!data.first_name?.trim()) errors.push('First name is required');
-  if (!data.last_name?.trim())  errors.push('Last name is required');
-  if (!data.email?.trim())      errors.push('Email is required');
+  if (typeof data.first_name !== 'string' || !data.first_name.trim()) errors.push('First name is required');
+  if (typeof data.last_name !== 'string' || !data.last_name.trim()) errors.push('Last name is required');
+  if (typeof data.email !== 'string' || !data.email.trim()) errors.push('Email is required');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) errors.push('Valid email is required');
-  if (!data.date)               errors.push('Date is required');
-  if (!data.time)               errors.push('Time is required');
-  if (!data.guests || data.guests < 1 || data.guests > 20) errors.push('Guests must be between 1 and 20');
-  const resDate = new Date(data.date);
-  const today = new Date(); today.setHours(0,0,0,0);
-  if (resDate < today) errors.push('Reservation date must be in the future');
+  const dateValid = typeof data.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(data.date)
+    && Number.isFinite(Date.parse(data.date)) && new Date(data.date).toISOString().slice(0, 10) === data.date;
+  if (!dateValid) errors.push('A valid reservation date is required');
+  if (typeof data.time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(data.time)) errors.push('A valid reservation time is required');
+  const guests = typeof data.guests === 'number' || typeof data.guests === 'string' ? Number(data.guests) : NaN;
+  if (!Number.isInteger(guests) || guests < 1 || guests > 20) errors.push('Guests must be a whole number between 1 and 20');
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  if (dateValid && data.date < today) errors.push('Reservation date must not be in the past');
+  for (const field of ['phone', 'notes', 'experience']) {
+    if (data[field] != null && typeof data[field] !== 'string') errors.push(`${field} must be text`);
+  }
   return errors;
 }
 

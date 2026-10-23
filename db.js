@@ -4,8 +4,8 @@ const fs   = require('fs');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
-const DB_PATH = path.join(__dirname, 'data', 'project_restaurant.db');
-fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'project_restaurant.db');
+if (DB_PATH !== ':memory:') fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 
 const initSqlJs = require('sql.js');
 
@@ -13,13 +13,13 @@ let _wrapper = null;
 let _rawDb   = null;
 
 function persist() {
-  if (!_rawDb) return;
+  if (!_rawDb || DB_PATH === ':memory:') return;
   const data = _rawDb.export();
   fs.writeFileSync(DB_PATH, Buffer.from(data));
 }
 
 let dirty = false;
-setInterval(() => { if (dirty) { persist(); dirty = false; } }, 5000);
+setInterval(() => { if (dirty) { persist(); dirty = false; } }, 5000).unref();
 process.on('exit',   () => persist());
 process.on('SIGINT', () => { persist(); process.exit(); });
 
@@ -78,7 +78,7 @@ function makeWrapper(rawDb) {
 
 async function init() {
   const SQL = await initSqlJs();
-  const existing = fs.existsSync(DB_PATH) ? fs.readFileSync(DB_PATH) : null;
+  const existing = DB_PATH !== ':memory:' && fs.existsSync(DB_PATH) ? fs.readFileSync(DB_PATH) : null;
   _rawDb   = existing ? new SQL.Database(existing) : new SQL.Database();
   _wrapper = makeWrapper(_rawDb);
 
